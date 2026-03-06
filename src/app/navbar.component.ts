@@ -1,0 +1,86 @@
+import { Component, inject, signal } from '@angular/core';
+import { RouterLink, RouterLinkActive } from '@angular/router';
+import { AuthService } from './auth.service';
+
+@Component({
+  selector: 'app-navbar',
+  standalone: true,
+  imports: [RouterLink, RouterLinkActive],
+  template: `
+    <nav class="fixed w-full z-50 bg-white/90 backdrop-blur-sm border-b border-black/5">
+      <div class="max-w-screen-2xl mx-auto px-6 lg:px-12">
+        <div class="flex justify-between items-center h-20 md:h-24">
+          <a routerLink="/" class="text-xl md:text-2xl tracking-tighter text-emerald-950">
+            OASIS<span class="font-bold">CLUB</span>
+          </a>
+          
+          <!-- Desktop Menu -->
+          <div class="hidden md:flex space-x-12">
+            <a routerLink="/" routerLinkActive="text-emerald-900 before:scale-x-100" [routerLinkActiveOptions]="{exact: true}" class="relative text-xs font-semibold tracking-[0.2em] text-gray-400 hover:text-emerald-900 uppercase transition-colors before:content-[''] before:absolute before:-bottom-2 before:left-0 before:w-full before:h-[1px] before:bg-emerald-900 before:scale-x-0 before:origin-left before:transition-transform hover:before:scale-x-100">
+              Inicio
+            </a>
+            <a routerLink="/reservar" routerLinkActive="text-emerald-900 before:scale-x-100" class="relative text-xs font-semibold tracking-[0.2em] text-gray-400 hover:text-emerald-900 uppercase transition-colors before:content-[''] before:absolute before:-bottom-2 before:left-0 before:w-full before:h-[1px] before:bg-emerald-900 before:scale-x-0 before:origin-left before:transition-transform hover:before:scale-x-100">
+              Reservar
+            </a>
+            <a routerLink="/gimnasio" routerLinkActive="text-emerald-900 before:scale-x-100" class="relative text-xs font-semibold tracking-[0.2em] text-gray-400 hover:text-emerald-900 uppercase transition-colors before:content-[''] before:absolute before:-bottom-2 before:left-0 before:w-full before:h-[1px] before:bg-emerald-900 before:scale-x-0 before:origin-left before:transition-transform hover:before:scale-x-100">
+              Gimnasio
+            </a>
+            @if (auth.isLoggedIn()) {
+              <a routerLink="/perfil" routerLinkActive="text-emerald-900 before:scale-x-100" class="relative text-xs font-semibold tracking-[0.2em] text-gray-400 hover:text-emerald-900 uppercase transition-colors before:content-[''] before:absolute before:-bottom-2 before:left-0 before:w-full before:h-[1px] before:bg-emerald-900 before:scale-x-0 before:origin-left before:transition-transform hover:before:scale-x-100">
+                Mi Área
+              </a>
+            }
+          </div>
+
+          <div class="flex items-center space-x-4 md:space-x-6">
+            @if (auth.isLoggedIn()) {
+              <button (click)="auth.logout()" class="hidden md:block text-xs font-semibold tracking-[0.15em] uppercase text-gray-400 hover:text-emerald-950 transition-colors">
+                Salir
+              </button>
+              <a routerLink="/perfil" class="hidden md:block text-xs font-semibold tracking-[0.15em] uppercase text-white bg-emerald-950 border border-emerald-950 px-6 py-3 rounded-full hover:bg-emerald-900 transition-all duration-300">
+                Perfil
+              </a>
+            } @else {
+              <a routerLink="/login" class="hidden md:block text-xs font-semibold tracking-[0.15em] uppercase text-emerald-950 border border-emerald-950/20 px-6 py-3 rounded-full hover:bg-emerald-950 hover:text-white transition-all duration-300">
+                Acceder
+              </a>
+            }
+
+            <!-- Mobile Menu Toggle -->
+            <button (click)="isMobileMenuOpen.set(!isMobileMenuOpen())" class="md:hidden p-2 text-emerald-950 focus:outline-none">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                @if (isMobileMenuOpen()) {
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6 18L18 6M6 6l12 12"></path>
+                } @else {
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 6h16M4 12h16M4 18h16"></path>
+                }
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mobile Menu -->
+      @if (isMobileMenuOpen()) {
+        <div class="md:hidden bg-white border-t border-black/5 px-6 py-8 flex flex-col space-y-6 shadow-xl absolute w-full left-0 top-full">
+          <a routerLink="/" (click)="isMobileMenuOpen.set(false)" class="text-sm font-semibold tracking-[0.2em] text-gray-400 uppercase hover:text-emerald-950">Inicio</a>
+          <a routerLink="/reservar" (click)="isMobileMenuOpen.set(false)" class="text-sm font-semibold tracking-[0.2em] text-gray-400 uppercase hover:text-emerald-950">Reservar</a>
+          <a routerLink="/gimnasio" (click)="isMobileMenuOpen.set(false)" class="text-sm font-semibold tracking-[0.2em] text-gray-400 uppercase hover:text-emerald-950">Gimnasio</a>
+          @if (auth.isLoggedIn()) {
+            <a routerLink="/perfil" (click)="isMobileMenuOpen.set(false)" class="text-sm font-semibold tracking-[0.2em] text-gray-400 uppercase hover:text-emerald-950">Mi Área</a>
+            <hr class="border-black/5">
+            <a routerLink="/perfil" (click)="isMobileMenuOpen.set(false)" class="text-sm font-semibold tracking-[0.2em] text-emerald-950 uppercase">Perfil</a>
+            <button (click)="auth.logout(); isMobileMenuOpen.set(false)" class="text-left text-sm font-semibold tracking-[0.2em] text-red-500 uppercase">Salir</button>
+          } @else {
+            <hr class="border-black/5">
+            <a routerLink="/login" (click)="isMobileMenuOpen.set(false)" class="text-sm font-semibold tracking-[0.2em] text-emerald-950 uppercase">Acceder</a>
+          }
+        </div>
+      }
+    </nav>
+  `
+})
+export class NavbarComponent {
+  auth = inject(AuthService);
+  isMobileMenuOpen = signal(false);
+}

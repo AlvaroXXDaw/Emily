@@ -1,0 +1,70 @@
+import { Component, inject, signal } from '@angular/core';
+import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
+import { AuthService } from './auth.service';
+import { Router } from '@angular/router';
+
+@Component({
+  selector: 'app-admin-layout',
+  standalone: true,
+  imports: [RouterOutlet, RouterLink, RouterLinkActive],
+  template: `
+    <div class="min-h-screen bg-[#f8f9fa] flex flex-col">
+      <!-- Admin Navbar -->
+      <nav class="bg-emerald-950 text-white px-6 lg:px-12 py-4 md:py-6 flex justify-between items-center sticky top-0 z-50">
+        <div class="flex items-center space-x-12">
+          <a routerLink="/admin" class="text-lg md:text-xl font-light tracking-widest uppercase">
+            Club<span class="font-bold">Admin</span>
+          </a>
+          
+          <!-- Desktop Menu -->
+          <div class="hidden md:flex space-x-8">
+            <a routerLink="/admin/reservas" routerLinkActive="opacity-100 border-b-2 border-white" class="text-xs font-semibold tracking-[0.2em] uppercase opacity-60 hover:opacity-100 transition-all py-2">Reservas</a>
+            <a routerLink="/admin/clientes" routerLinkActive="opacity-100 border-b-2 border-white" class="text-xs font-semibold tracking-[0.2em] uppercase opacity-60 hover:opacity-100 transition-all py-2">Clientes</a>
+          </div>
+        </div>
+        
+        <div class="flex items-center space-x-4">
+          <button (click)="logout()" class="hidden md:block text-xs font-semibold tracking-[0.2em] uppercase opacity-60 hover:opacity-100 transition-opacity">
+            Cerrar Sesión
+          </button>
+          
+          <!-- Mobile Menu Toggle -->
+          <button (click)="isMobileMenuOpen.set(!isMobileMenuOpen())" class="md:hidden p-2 text-white focus:outline-none">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              @if (isMobileMenuOpen()) {
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6 18L18 6M6 6l12 12"></path>
+              } @else {
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 6h16M4 12h16M4 18h16"></path>
+              }
+            </svg>
+          </button>
+        </div>
+      </nav>
+
+      <!-- Mobile Menu -->
+      @if (isMobileMenuOpen()) {
+        <div class="md:hidden bg-emerald-900 text-white px-6 py-6 flex flex-col space-y-6 shadow-xl sticky top-[68px] z-40">
+          <a routerLink="/admin/reservas" (click)="isMobileMenuOpen.set(false)" class="text-sm font-semibold tracking-[0.2em] uppercase opacity-80 hover:opacity-100">Reservas</a>
+          <a routerLink="/admin/clientes" (click)="isMobileMenuOpen.set(false)" class="text-sm font-semibold tracking-[0.2em] uppercase opacity-80 hover:opacity-100">Clientes</a>
+          <hr class="border-white/10">
+          <button (click)="logout(); isMobileMenuOpen.set(false)" class="text-left text-sm font-semibold tracking-[0.2em] text-red-400 uppercase">Cerrar Sesión</button>
+        </div>
+      }
+
+      <!-- Main Content -->
+      <main class="flex-grow">
+        <router-outlet></router-outlet>
+      </main>
+    </div>
+  `
+})
+export class AdminLayoutComponent {
+  auth = inject(AuthService);
+  router = inject(Router);
+  isMobileMenuOpen = signal(false);
+
+  logout() {
+    this.auth.logout();
+    this.router.navigate(['/login']);
+  }
+}

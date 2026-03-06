@@ -1,0 +1,47 @@
+import { Component } from '@angular/core';
+import { RouterLink } from '@angular/router';
+
+@Component({
+  selector: 'app-facility-futbol',
+  standalone: true,
+  imports: [RouterLink],
+  template: `
+    <div class="min-h-screen bg-white pt-24">
+      <!-- Hero -->
+      <div class="w-full h-[60vh] relative">
+        <img src="https://images.unsplash.com/photo-1518605368461-1ee7c532066d?q=80&w=1920&auto=format&fit=crop" alt="Fútbol Premium" class="w-full h-full object-cover" referrerpolicy="no-referrer">
+        <div class="absolute inset-0 bg-emerald-950/40"></div>
+        <div class="absolute inset-0 flex flex-col items-center justify-center text-white p-6 text-center">
+          <span class="text-xs font-semibold tracking-[0.3em] uppercase mb-4">Instalaciones</span>
+          <h1 class="text-6xl lg:text-8xl font-light tracking-tighter uppercase">Fútbol</h1>
+        </div>
+      </div>
+
+      <!-- Content -->
+      <div class="max-w-screen-xl mx-auto px-6 lg:px-12 py-24">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center mb-24">
+          <div>
+            <h2 class="text-3xl font-light tracking-tight text-emerald-950 mb-6">El terreno de juego perfecto.</h2>
+            <p class="text-gray-500 font-light leading-relaxed mb-6">
+              Disfruta de 4 campos de Fútbol 7 indoor diseñados para ofrecer la experiencia definitiva. Sin importar el clima exterior, nuestro césped de calidad FIFA Pro garantiza un bote regular y previene lesiones.
+            </p>
+            <ul class="space-y-4 border-t border-black/5 pt-6">
+              <li class="flex items-center text-sm text-emerald-950"><span class="w-1.5 h-1.5 bg-emerald-950 rounded-full mr-3"></span> Césped artificial de última generación (FIFA Quality Pro)</li>
+              <li class="flex items-center text-sm text-emerald-950"><span class="w-1.5 h-1.5 bg-emerald-950 rounded-full mr-3"></span> Marcadores electrónicos y grabación de partidos</li>
+              <li class="flex items-center text-sm text-emerald-950"><span class="w-1.5 h-1.5 bg-emerald-950 rounded-full mr-3"></span> Balones premium incluidos en la reserva</li>
+              <li class="flex items-center text-sm text-emerald-950"><span class="w-1.5 h-1.5 bg-emerald-950 rounded-full mr-3"></span> Gradas minimalistas para espectadores</li>
+            </ul>
+            <div class="mt-10">
+              <a routerLink="/reservar" class="inline-block bg-emerald-950 text-white px-8 py-4 text-xs font-semibold tracking-[0.2em] uppercase hover:bg-emerald-900 transition-colors">Reservar Campo</a>
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <img src="https://images.unsplash.com/photo-1614632537190-23e4146777db?q=80&w=800&auto=format&fit=crop" alt="Detalle Fútbol" class="w-full aspect-square object-cover" referrerpolicy="no-referrer">
+            <img src="https://images.unsplash.com/photo-1508344928928-7165b67de128?q=80&w=800&auto=format&fit=crop" alt="Gradas" class="w-full aspect-square object-cover mt-8" referrerpolicy="no-referrer">
+          </div>
+        </div>
+      </div>
+    </div>
+  `
+})
+export class FacilityFutbolComponent {}

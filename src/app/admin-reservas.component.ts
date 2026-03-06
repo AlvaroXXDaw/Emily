@@ -1,0 +1,206 @@
+import { Component, signal } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { NgClass } from '@angular/common';
+
+interface Reservation {
+  id: string;
+  user: string;
+  sport: 'Fútbol' | 'Pádel';
+  court: string;
+  date: string;
+  time: string;
+  status: 'Activa' | 'Mantenimiento';
+}
+
+@Component({
+  selector: 'app-admin-reservas',
+  standalone: true,
+  imports: [FormsModule, NgClass],
+  template: `
+    <div class="max-w-screen-xl mx-auto px-6 lg:px-12 py-12">
+      <div class="mb-12 flex flex-col md:flex-row md:justify-between md:items-end gap-6">
+        <div>
+          <h2 class="text-4xl font-light tracking-tighter text-emerald-950 uppercase mb-2">Gestión de Reservas</h2>
+          <p class="text-gray-500 font-light">Visualiza y gestiona las reservas de pistas, o bloquea por mantenimiento.</p>
+        </div>
+        
+        <div class="flex flex-wrap gap-2 md:gap-4 mt-4 md:mt-0">
+          <button 
+            (click)="filterSport.set('Todos')"
+            [class.bg-emerald-950]="filterSport() === 'Todos'"
+            [class.text-white]="filterSport() === 'Todos'"
+            [class.bg-white]="filterSport() !== 'Todos'"
+            [class.text-emerald-950]="filterSport() !== 'Todos'"
+            class="px-4 md:px-6 py-2 md:py-3 text-[10px] md:text-xs font-semibold tracking-[0.2em] uppercase border border-emerald-950 transition-colors flex-grow md:flex-grow-0">
+            Todos
+          </button>
+          <button 
+            (click)="filterSport.set('Fútbol')"
+            [class.bg-emerald-950]="filterSport() === 'Fútbol'"
+            [class.text-white]="filterSport() === 'Fútbol'"
+            [class.bg-white]="filterSport() !== 'Fútbol'"
+            [class.text-emerald-950]="filterSport() !== 'Fútbol'"
+            class="px-4 md:px-6 py-2 md:py-3 text-[10px] md:text-xs font-semibold tracking-[0.2em] uppercase border border-emerald-950 transition-colors flex-grow md:flex-grow-0">
+            Fútbol
+          </button>
+          <button 
+            (click)="filterSport.set('Pádel')"
+            [class.bg-emerald-950]="filterSport() === 'Pádel'"
+            [class.text-white]="filterSport() === 'Pádel'"
+            [class.bg-white]="filterSport() !== 'Pádel'"
+            [class.text-emerald-950]="filterSport() !== 'Pádel'"
+            class="px-4 md:px-6 py-2 md:py-3 text-[10px] md:text-xs font-semibold tracking-[0.2em] uppercase border border-emerald-950 transition-colors flex-grow md:flex-grow-0">
+            Pádel
+          </button>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        
+        <!-- Lista de Reservas -->
+        <div class="lg:col-span-2 bg-white border border-black/5 p-6 md:p-8">
+          <h3 class="text-xs font-semibold tracking-[0.2em] uppercase text-gray-400 mb-8">Reservas Actuales</h3>
+          
+          <div class="space-y-4">
+            @for (res of filteredReservations(); track res.id) {
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between p-4 border border-black/5 hover:border-emerald-950 transition-colors gap-4">
+                <div>
+                  <div class="flex items-center space-x-3 mb-1">
+                    <span class="text-sm font-medium text-emerald-950">{{ res.user }}</span>
+                    <span 
+                      [class.bg-emerald-100]="res.status === 'Activa'"
+                      [class.text-emerald-800]="res.status === 'Activa'"
+                      [class.bg-red-100]="res.status === 'Mantenimiento'"
+                      [class.text-red-800]="res.status === 'Mantenimiento'"
+                      class="px-2 py-0.5 text-[10px] font-semibold tracking-wider uppercase rounded-sm">
+                      {{ res.status }}
+                    </span>
+                  </div>
+                  <div class="text-xs font-light text-gray-500 flex flex-wrap items-center gap-x-2 gap-y-1">
+                    <span>{{ res.sport }} - {{ res.court }}</span>
+                    <span class="hidden sm:inline">&bull;</span>
+                    <span>{{ res.date }} a las {{ res.time }}</span>
+                  </div>
+                </div>
+                
+                <div class="flex justify-end">
+                  @if (res.status === 'Activa') {
+                    <button (click)="cancelReservation(res.id)" class="text-xs font-semibold tracking-[0.1em] uppercase text-red-500 hover:text-red-700 transition-colors">
+                      Cancelar
+                    </button>
+                  } @else {
+                    <button (click)="removeMaintenance(res.id)" class="text-xs font-semibold tracking-[0.1em] uppercase text-emerald-600 hover:text-emerald-800 transition-colors">
+                      Habilitar
+                    </button>
+                  }
+                </div>
+              </div>
+            }
+            
+            @if (filteredReservations().length === 0) {
+              <div class="py-12 text-center text-gray-400 font-light text-sm">
+                No hay reservas para este filtro.
+              </div>
+            }
+          </div>
+        </div>
+
+        <!-- Bloquear Pista -->
+        <div class="bg-white border border-black/5 p-6 md:p-8 h-fit">
+          <h3 class="text-xs font-semibold tracking-[0.2em] uppercase text-gray-400 mb-8">Bloquear por Mantenimiento</h3>
+          
+          <form (submit)="blockCourt($event)" class="space-y-6">
+            <div>
+              <span class="block text-xs font-semibold tracking-[0.1em] text-gray-400 uppercase mb-2">Deporte</span>
+              <select [(ngModel)]="blockForm.sport" name="sport" class="w-full border-b border-black/10 py-2 text-emerald-950 focus:border-emerald-950 focus:outline-none bg-transparent text-sm">
+                <option value="Fútbol">Fútbol</option>
+                <option value="Pádel">Pádel</option>
+              </select>
+            </div>
+            
+            <div>
+              <span class="block text-xs font-semibold tracking-[0.1em] text-gray-400 uppercase mb-2">Pista</span>
+              <select [(ngModel)]="blockForm.court" name="court" class="w-full border-b border-black/10 py-2 text-emerald-950 focus:border-emerald-950 focus:outline-none bg-transparent text-sm">
+                @if (blockForm.sport === 'Fútbol') {
+                  <option value="Pista 1 (F11)">Pista 1 (F11)</option>
+                  <option value="Pista 2 (F7)">Pista 2 (F7)</option>
+                } @else {
+                  <option value="Pista Cristal 1">Pista Cristal 1</option>
+                  <option value="Pista Cristal 2">Pista Cristal 2</option>
+                  <option value="Pista Muro">Pista Muro</option>
+                }
+              </select>
+            </div>
+            
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <span class="block text-xs font-semibold tracking-[0.1em] text-gray-400 uppercase mb-2">Fecha</span>
+                <input type="date" [(ngModel)]="blockForm.date" name="date" class="w-full border-b border-black/10 py-2 text-emerald-950 focus:border-emerald-950 focus:outline-none bg-transparent text-sm">
+              </div>
+              <div>
+                <span class="block text-xs font-semibold tracking-[0.1em] text-gray-400 uppercase mb-2">Hora</span>
+                <input type="time" [(ngModel)]="blockForm.time" name="time" class="w-full border-b border-black/10 py-2 text-emerald-950 focus:border-emerald-950 focus:outline-none bg-transparent text-sm">
+              </div>
+            </div>
+
+            <button type="submit" class="w-full bg-red-900 text-white py-4 text-xs font-semibold tracking-[0.2em] uppercase hover:bg-red-950 transition-colors mt-4">
+              Bloquear Pista
+            </button>
+          </form>
+        </div>
+
+      </div>
+    </div>
+  `
+})
+export class AdminReservasComponent {
+  filterSport = signal<'Todos' | 'Fútbol' | 'Pádel'>('Todos');
+  
+  reservations = signal<Reservation[]>([
+    { id: '1', user: 'Carlos Ruiz', sport: 'Pádel', court: 'Pista Cristal 1', date: '2026-03-05', time: '18:00', status: 'Activa' },
+    { id: '2', user: 'Ana Gómez', sport: 'Fútbol', court: 'Pista 2 (F7)', date: '2026-03-05', time: '19:30', status: 'Activa' },
+    { id: '3', user: 'Mantenimiento', sport: 'Pádel', court: 'Pista Muro', date: '2026-03-06', time: '10:00', status: 'Mantenimiento' },
+    { id: '4', user: 'David López', sport: 'Fútbol', court: 'Pista 1 (F11)', date: '2026-03-06', time: '20:00', status: 'Activa' },
+  ]);
+
+  blockForm = {
+    sport: 'Pádel',
+    court: 'Pista Cristal 1',
+    date: '',
+    time: ''
+  };
+
+  filteredReservations() {
+    if (this.filterSport() === 'Todos') return this.reservations();
+    return this.reservations().filter(r => r.sport === this.filterSport());
+  }
+
+  cancelReservation(id: string) {
+    this.reservations.update(res => res.filter(r => r.id !== id));
+  }
+
+  removeMaintenance(id: string) {
+    this.reservations.update(res => res.filter(r => r.id !== id));
+  }
+
+  blockCourt(event: Event) {
+    event.preventDefault();
+    if (!this.blockForm.date || !this.blockForm.time) return;
+
+    const newBlock: Reservation = {
+      id: Date.now().toString(),
+      user: 'Mantenimiento',
+      sport: this.blockForm.sport as 'Fútbol' | 'Pádel',
+      court: this.blockForm.court,
+      date: this.blockForm.date,
+      time: this.blockForm.time,
+      status: 'Mantenimiento'
+    };
+
+    this.reservations.update(res => [newBlock, ...res]);
+    
+    // Reset form
+    this.blockForm.date = '';
+    this.blockForm.time = '';
+  }
+}
