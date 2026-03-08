@@ -1,20 +1,59 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+﻿# Emily Project
 
-# Run and deploy your AI Studio app
+Proyecto con frontend Angular y backend Spring Boot.
 
-This contains everything you need to run your app locally.
+## Estructura
+- `src/app/app-shell`: bootstrap/config/rutas del frontend
+- `src/app/core`: estado global, modelos y servicios HTTP
+- `src/app/shared`: layout y componentes reutilizables
+- `src/app/features`: páginas funcionales por dominio
+- `backend/`: API Spring Boot (DTO + Entity + Controller + Repository + Mapper + Service)
+- `docker-compose.yml`: PostgreSQL local para desarrollo
 
-View your app in AI Studio: https://ai.studio/apps/fef34dad-b882-44b8-8ad9-af40bdc48164
+## Backend preparado para PostgreSQL con tus credenciales
+El backend usa variables de entorno para conectarse a una base PostgreSQL que tú proporcionas.
 
-## Run Locally
+Variables requeridas:
+- `DB_URL` (ej: `jdbc:postgresql://localhost:5432/emily`)
+- `DB_USERNAME`
+- `DB_PASSWORD`
 
-**Prerequisites:**  Node.js
+Opcional:
+- `PORT` (por defecto `8080`)
+
+Puedes usar `backend/.env.example` como referencia.
+
+## Levantar PostgreSQL local (opcional)
+Desde la raíz:
+
+```bash
+npm run db:up
+```
+
+## Ejecutar backend
+Windows:
+
+```bash
+npm run dev:backend
+```
+
+Linux/macOS:
+
+```bash
+./backend/mvnw spring-boot:run -Dspring-boot.run.profiles=dev
+```
+
+Swagger:
+- `http://localhost:8080/swagger-ui.html`
+
+## Ejecutar frontend
+```bash
+npm install
+npm run dev
+```
+
+Notas frontend:
+- proxy de API: [proxy.conf.json](./proxy.conf.json)
+- base URL API: `src/environments/environment*.ts` (`/api/v1`)
 
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
