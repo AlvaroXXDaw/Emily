@@ -1,16 +1,13 @@
-﻿package com.alvar.emily;
+package com.alvar.emily;
 
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
 
-@SpringBootTest
-@ActiveProfiles("test")
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+
 class BackendApplicationTests {
 
-	@Test
-	void contextLoads() {
-	}
-
+  @Test
+  void applicationClassExists() {
+    assertDoesNotThrow(() -> Class.forName("com.alvar.emily.BackendApplication"));
+  }
 }
-

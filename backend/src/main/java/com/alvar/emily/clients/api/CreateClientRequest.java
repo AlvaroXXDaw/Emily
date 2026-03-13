@@ -1,4 +1,4 @@
-﻿package com.alvar.emily.clients.api;
+package com.alvar.emily.clients.api;
 
 import com.alvar.emily.clients.domain.ClientPlan;
 import jakarta.validation.constraints.Email;
@@ -18,5 +18,8 @@ public class CreateClientRequest {
 
   @NotNull
   private ClientPlan plan;
+
+  @NotBlank
+  private String password;
 }
 

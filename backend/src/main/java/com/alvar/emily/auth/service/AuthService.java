@@ -1,12 +1,12 @@
-﻿package com.alvar.emily.auth.service;
+package com.alvar.emily.auth.service;
 
 import com.alvar.emily.auth.api.AuthSessionResponse;
 import com.alvar.emily.auth.api.LoginRequest;
 import com.alvar.emily.auth.mapper.AuthMapper;
+import com.alvar.emily.auth.security.JwtService;
 import com.alvar.emily.clients.domain.ClientEntity;
-import com.alvar.emily.clients.domain.ClientPlan;
 import com.alvar.emily.clients.service.ClientService;
-import java.time.LocalDate;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,44 +15,39 @@ public class AuthService {
 
   private final ClientService clientService;
   private final AuthMapper authMapper;
+  private final JwtService jwtService;
+  private final PasswordEncoder passwordEncoder;
 
-  public AuthService(ClientService clientService, AuthMapper authMapper) {
+  public AuthService(
+      ClientService clientService,
+      AuthMapper authMapper,
+      JwtService jwtService,
+      PasswordEncoder passwordEncoder
+  ) {
     this.clientService = clientService;
     this.authMapper = authMapper;
+    this.jwtService = jwtService;
+    this.passwordEncoder = passwordEncoder;
   }
 
-  @Transactional
+  @Transactional(readOnly = true)
   public AuthSessionResponse login(LoginRequest request) {
     String email = request.getEmail().trim().toLowerCase();
 
+    // 1. Buscar cliente por email
     ClientEntity client = clientService.findByEmail(email);
     if (client == null) {
-      client = createBasicClientFromEmail(email);
+      throw new IllegalArgumentException("Credenciales inválidas");
     }
 
-    String role = email.contains("admin") ? "ADMIN" : "MEMBER";
-    return authMapper.toResponse(client, role);
-  }
-
-  private ClientEntity createBasicClientFromEmail(String email) {
-    String name = email.split("@")[0].replace('.', ' ');
-    if (name.isBlank()) {
-      name = "Socio";
+    // 2. Verificar password con BCrypt
+    if (!passwordEncoder.matches(request.getPassword(), client.getPasswordHash())) {
+      throw new IllegalArgumentException("Credenciales inválidas");
     }
-    name = name.substring(0, 1).toUpperCase() + name.substring(1);
 
-    ClientEntity entity = ClientEntity.builder()
-        .name(name)
-        .email(email)
-        .plan(ClientPlan.BASIC)
-        .joinDate(LocalDate.now())
-        .subscriptionName("Básico Mensual")
-        .subscriptionStatus("ACTIVA")
-        .nextBillingDate(LocalDate.now().plusMonths(1))
-        .subscriptionAmountCents(3999)
-        .build();
+    // 3. Generar nuestro JWT
+    String token = jwtService.generateToken(client.getId(), client.getEmail(), client.getRole());
 
-    return clientService.saveEntity(entity);
+    return authMapper.toResponse(client, token);
   }
 }
-

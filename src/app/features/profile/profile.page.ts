@@ -1,8 +1,12 @@
-﻿import { Component, effect, inject, signal } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
-import { AuthService } from '../../core/auth/auth.service';
-import { RoutineDay, UserDataService, UserReservation } from '../../core/services/user-data.service';
+import { AuthStore } from '../../core/auth/auth.store';
+import { ProfileApiService } from '../../core/services/profile-api.service';
+import { ProfileReservation, ProfileSummary } from '../../core/models/profile.models';
+import { ReservationsApiService } from '../../core/services/reservations-api.service';
+import { GymApiService } from '../../core/services/gym-api.service';
+import { RoutineDay } from '../../core/models/gym.models';
 
 @Component({
   selector: 'app-profile',
@@ -10,70 +14,68 @@ import { RoutineDay, UserDataService, UserReservation } from '../../core/service
   imports: [RouterLink],
   templateUrl: './profile.page.html',
 })
-export class ProfilePageComponent {
-  auth = inject(AuthService);
-  private userData = inject(UserDataService);
+export class ProfilePageComponent implements OnInit {
+  auth = inject(AuthStore);
+  private authStore = inject(AuthStore);
+  private profileApi = inject(ProfileApiService);
+  private reservationsApi = inject(ReservationsApiService);
+  private gymApi = inject(GymApiService);
 
-  myReservations = signal<UserReservation[]>([]);
+  profile = signal<ProfileSummary | null>(null);
+  myReservations = signal<ProfileReservation[]>([]);
   myRoutine = signal<RoutineDay[]>([]);
+  loading = signal(true);
 
-  constructor() {
-    effect(() => {
-      const email = this.auth.currentUser()?.email;
+  ngOnInit() {
+    const session = this.authStore.session();
+    if (!session) return;
 
-      if (!email) {
-        this.myReservations.set([]);
-        this.myRoutine.set([]);
-        return;
-      }
+    this.profileApi.getByClient(session.clientId).subscribe({
+      next: (profile) => {
+        this.profile.set(profile);
+        this.myReservations.set(profile.reservations);
+        this.loading.set(false);
+      },
+      error: () => this.loading.set(false),
+    });
 
-      this.myReservations.set(this.userData.getReservations(email));
-      this.myRoutine.set(this.userData.getRoutine(email));
+    this.gymApi.getByClient(session.clientId).subscribe({
+      next: (routine) => this.myRoutine.set(routine),
     });
   }
 
   deleteReservation(reservationId: string) {
-    const email = this.auth.currentUser()?.email;
-    if (!email) {
-      return;
-    }
-
-    const updated = this.userData.deleteReservation(email, reservationId);
-    this.myReservations.set(updated);
+    this.reservationsApi.delete(reservationId).subscribe({
+      next: () => {
+        this.myReservations.update((res) => res.filter((r) => r.id !== reservationId));
+      },
+    });
   }
 
   deleteExercise(dayId: number, exerciseId: string) {
-    const email = this.auth.currentUser()?.email;
-    if (!email) {
-      return;
-    }
+    // Note: This would need a specific API endpoint for deleting exercises
+    // For now, remove locally and update the full routine
+    const session = this.authStore.session();
+    if (!session) return;
 
     const updatedRoutine = this.myRoutine().map((day) => {
-      if (day.id !== dayId) {
-        return day;
-      }
-
+      if (day.dayOrder !== dayId) return day;
       return {
         ...day,
-        exercises: day.exercises.filter((exercise) => exercise.id !== exerciseId),
+        exercises: day.exercises.filter((e) => e.id !== exerciseId),
       };
     });
 
-    this.userData.saveRoutine(email, updatedRoutine);
     this.myRoutine.set(updatedRoutine);
+    this.gymApi.update(session.clientId, { days: updatedRoutine }).subscribe();
   }
 
   deleteDay(dayId: number) {
-    const email = this.auth.currentUser()?.email;
-    if (!email) {
-      return;
-    }
+    const session = this.authStore.session();
+    if (!session) return;
 
-    const updatedRoutine = this.myRoutine()
-      .filter((day) => day.id !== dayId)
-      .map((day, index) => ({ ...day, id: index + 1 }));
-
-    this.userData.saveRoutine(email, updatedRoutine);
+    const updatedRoutine = this.myRoutine().filter((day) => day.dayOrder !== dayId);
     this.myRoutine.set(updatedRoutine);
+    this.gymApi.update(session.clientId, { days: updatedRoutine }).subscribe();
   }
 }

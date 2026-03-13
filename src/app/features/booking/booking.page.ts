@@ -1,17 +1,17 @@
-﻿import { DatePipe, NgClass } from '@angular/common';
-import { Component, effect, inject, signal } from '@angular/core';
+import { DatePipe, NgClass } from '@angular/common';
+import { Component, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
-import { AuthService } from '../../core/auth/auth.service';
-import { UserDataService, UserReservation } from '../../core/services/user-data.service';
+import { AuthStore } from '../../core/auth/auth.store';
+import { ReservationsApiService } from '../../core/services/reservations-api.service';
+import {
+  AvailabilitySlot,
+  CreateReservationRequest,
+  Reservation,
+  SportType,
+} from '../../core/models/reservation.models';
 
-type Sport = 'futbol' | 'padel' | null;
-
-interface TimeSlot {
-  time: string;
-  available: boolean;
-  selected?: boolean;
-}
+type Sport = 'FUTBOL' | 'PADEL' | null;
 
 @Component({
   selector: 'app-book',
@@ -20,47 +20,43 @@ interface TimeSlot {
   templateUrl: './booking.page.html',
 })
 export class BookingPageComponent {
-  auth = inject(AuthService);
-  private userData = inject(UserDataService);
+  auth = inject(AuthStore);
+  private authStore = inject(AuthStore);
+  private reservationsApi = inject(ReservationsApiService);
 
   selectedSport = signal<Sport>(null);
   today = new Date();
-  myReservations = signal<UserReservation[]>([]);
-
-  timeSlots = signal<TimeSlot[]>([
-    { time: '09:00', available: true, selected: false },
-    { time: '10:30', available: false, selected: false },
-    { time: '12:00', available: true, selected: false },
-    { time: '13:30', available: true, selected: false },
-    { time: '15:00', available: false, selected: false },
-    { time: '16:30', available: false, selected: false },
-    { time: '18:00', available: true, selected: false },
-    { time: '19:30', available: true, selected: false },
-    { time: '21:00', available: true, selected: false },
-  ]);
-
-  constructor() {
-    effect(() => {
-      const email = this.auth.currentUser()?.email;
-      if (!email) {
-        this.myReservations.set([]);
-        return;
-      }
-
-      this.myReservations.set(this.userData.getReservations(email));
-    });
-  }
+  myReservations = signal<Reservation[]>([]);
+  timeSlots = signal<AvailabilitySlot[]>([]);
 
   selectSport(sport: Sport) {
     this.selectedSport.set(sport);
-    if (sport) {
-      this.timeSlots.update((slots) =>
-        slots.map((slot) => ({ ...slot, available: Math.random() > 0.4, selected: false })),
-      );
-    }
+    if (!sport) return;
+
+    const dateStr = this.formatDate(this.today);
+    this.reservationsApi.getAvailability(sport, dateStr).subscribe({
+      next: (slots) => this.timeSlots.set(slots),
+    });
+
+    this.loadMyReservations();
   }
 
-  selectSlot(selectedSlot: TimeSlot) {
+  private loadMyReservations() {
+    const sport = this.selectedSport();
+    if (!sport) return;
+
+    const session = this.authStore.session();
+    if (!session) return;
+
+    this.reservationsApi.getAll({ sport }).subscribe({
+      next: (reservations) => {
+        const mine = reservations.filter((r) => r.clientId === session.clientId);
+        this.myReservations.set(mine);
+      },
+    });
+  }
+
+  selectSlot(selectedSlot: AvailabilitySlot) {
     if (!selectedSlot.available) return;
 
     this.timeSlots.update((slots) =>
@@ -76,52 +72,56 @@ export class BookingPageComponent {
   }
 
   confirmReservation() {
-    const email = this.auth.currentUser()?.email;
+    const session = this.authStore.session();
     const sport = this.selectedSport();
     const selected = this.timeSlots().find((slot) => slot.selected);
 
-    if (!email || !sport || !selected) {
-      return;
-    }
+    if (!session || !sport || !selected) return;
 
-    const reservation: UserReservation = {
-      id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
-      sport: sport === 'futbol' ? 'Fútbol' : 'Pádel',
-      court: this.buildCourtName(sport),
+    const courts: Record<string, string[]> = {
+      FUTBOL: ['Pista 1 (F11)', 'Pista 2 (F7)'],
+      PADEL: ['Pista Cristal 1', 'Pista Cristal 2', 'Pista Muro'],
+    };
+    const sportCourts = courts[sport];
+    const court = sportCourts[Math.floor(Math.random() * sportCourts.length)];
+
+    const request: CreateReservationRequest = {
+      clientId: session.clientId,
+      userName: session.name,
+      sport,
+      court,
       date: this.formatDate(this.today),
-      time: selected.time,
-      status: 'Pendiente',
+      time: selected.time + ':00',
     };
 
-    const updated = this.userData.addReservation(email, reservation);
-    this.myReservations.set(updated);
+    this.reservationsApi.create(request).subscribe({
+      next: (reservation) => {
+        this.myReservations.update((res) => [reservation, ...res]);
 
-    this.timeSlots.update((slots) =>
-      slots.map((slot) =>
-        slot.time === selected.time
-          ? { ...slot, available: false, selected: false }
-          : { ...slot, selected: false },
-      ),
-    );
+        this.timeSlots.update((slots) =>
+          slots.map((slot) =>
+            slot.time === selected.time
+              ? { ...slot, available: false, selected: false }
+              : { ...slot, selected: false },
+          ),
+        );
+      },
+    });
   }
 
   deleteReservation(reservationId: string) {
-    const email = this.auth.currentUser()?.email;
-    if (!email) {
-      return;
-    }
-
-    const updated = this.userData.deleteReservation(email, reservationId);
-    this.myReservations.set(updated);
-  }
-
-  private buildCourtName(sport: Exclude<Sport, null>): string {
-    if (sport === 'futbol') {
-      return Math.random() > 0.5 ? 'Pista 1 (F11)' : 'Pista 2 (F7)';
-    }
-
-    const padelCourts = ['Pista Cristal 1', 'Pista Cristal 2', 'Pista Muro'];
-    return padelCourts[Math.floor(Math.random() * padelCourts.length)];
+    this.reservationsApi.delete(reservationId).subscribe({
+      next: () => {
+        this.myReservations.update((res) => res.filter((r) => r.id !== reservationId));
+        // Reload availability
+        const sport = this.selectedSport();
+        if (sport) {
+          this.reservationsApi.getAvailability(sport, this.formatDate(this.today)).subscribe({
+            next: (slots) => this.timeSlots.set(slots),
+          });
+        }
+      },
+    });
   }
 
   private formatDate(date: Date): string {

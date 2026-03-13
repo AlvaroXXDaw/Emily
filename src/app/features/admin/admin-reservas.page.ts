@@ -1,15 +1,8 @@
-﻿import { Component, signal } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
-interface Reservation {
-  id: string;
-  user: string;
-  sport: 'Fútbol' | 'Pádel';
-  court: string;
-  date: string;
-  time: string;
-  status: 'Activa' | 'Mantenimiento';
-}
+import { ReservationsApiService } from '../../core/services/reservations-api.service';
+import { Reservation, SportType, CreateMaintenanceBlockRequest } from '../../core/models/reservation.models';
 
 @Component({
   selector: 'app-admin-reservas',
@@ -17,57 +10,73 @@ interface Reservation {
   imports: [FormsModule],
   templateUrl: './admin-reservas.page.html',
 })
-export class AdminReservasPageComponent {
-  filterSport = signal<'Todos' | 'Fútbol' | 'Pádel'>('Todos');
-  
-  reservations = signal<Reservation[]>([
-    { id: '1', user: 'Carlos Ruiz', sport: 'Pádel', court: 'Pista Cristal 1', date: '2026-03-05', time: '18:00', status: 'Activa' },
-    { id: '2', user: 'Ana Gómez', sport: 'Fútbol', court: 'Pista 2 (F7)', date: '2026-03-05', time: '19:30', status: 'Activa' },
-    { id: '3', user: 'Mantenimiento', sport: 'Pádel', court: 'Pista Muro', date: '2026-03-06', time: '10:00', status: 'Mantenimiento' },
-    { id: '4', user: 'David López', sport: 'Fútbol', court: 'Pista 1 (F11)', date: '2026-03-06', time: '20:00', status: 'Activa' },
-  ]);
+export class AdminReservasPageComponent implements OnInit {
+  private reservationsApi = inject(ReservationsApiService);
+
+  filterSport = signal<'Todos' | 'FUTBOL' | 'PADEL'>('Todos');
+  reservations = signal<Reservation[]>([]);
+  loading = signal(true);
 
   blockForm = {
-    sport: 'Pádel',
+    sport: 'PADEL' as SportType,
     court: 'Pista Cristal 1',
     date: '',
-    time: ''
+    time: '',
   };
 
+  ngOnInit() {
+    this.loadReservations();
+  }
+
+  private loadReservations() {
+    this.loading.set(true);
+    const filters = this.filterSport() === 'Todos' ? {} : { sport: this.filterSport() as SportType };
+
+    this.reservationsApi.getAll(filters).subscribe({
+      next: (reservations) => {
+        this.reservations.set(reservations);
+        this.loading.set(false);
+      },
+      error: () => this.loading.set(false),
+    });
+  }
+
+  applyFilter(sport: 'Todos' | 'FUTBOL' | 'PADEL') {
+    this.filterSport.set(sport);
+    this.loadReservations();
+  }
+
   filteredReservations() {
-    if (this.filterSport() === 'Todos') return this.reservations();
-    return this.reservations().filter(r => r.sport === this.filterSport());
+    return this.reservations();
   }
 
   cancelReservation(id: string) {
-    this.reservations.update(res => res.filter(r => r.id !== id));
+    this.reservationsApi.delete(id).subscribe({
+      next: () => this.reservations.update((res) => res.filter((r) => r.id !== id)),
+    });
   }
 
   removeMaintenance(id: string) {
-    this.reservations.update(res => res.filter(r => r.id !== id));
+    this.cancelReservation(id);
   }
 
   blockCourt(event: Event) {
     event.preventDefault();
     if (!this.blockForm.date || !this.blockForm.time) return;
 
-    const newBlock: Reservation = {
-      id: Date.now().toString(),
-      user: 'Mantenimiento',
-      sport: this.blockForm.sport as 'Fútbol' | 'Pádel',
+    const request: CreateMaintenanceBlockRequest = {
+      sport: this.blockForm.sport,
       court: this.blockForm.court,
       date: this.blockForm.date,
-      time: this.blockForm.time,
-      status: 'Mantenimiento'
+      time: this.blockForm.time + ':00',
     };
 
-    this.reservations.update(res => [newBlock, ...res]);
-    
-    // Reset form
-    this.blockForm.date = '';
-    this.blockForm.time = '';
+    this.reservationsApi.createMaintenance(request).subscribe({
+      next: (reservation) => {
+        this.reservations.update((res) => [reservation, ...res]);
+        this.blockForm.date = '';
+        this.blockForm.time = '';
+      },
+    });
   }
 }
-
-
-

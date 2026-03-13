@@ -1,4 +1,4 @@
-﻿export type SportType = 'FUTBOL' | 'PADEL';
+export type SportType = 'FUTBOL' | 'PADEL';
 export type ReservationStatus = 'ACTIVE' | 'MAINTENANCE' | 'PENDING' | 'COMPLETED';
 
 export interface Reservation {
@@ -31,4 +31,5 @@ export interface CreateMaintenanceBlockRequest {
 export interface AvailabilitySlot {
   time: string;
   available: boolean;
+  selected?: boolean;
 }

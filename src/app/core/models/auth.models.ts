@@ -1,4 +1,4 @@
-﻿export type UserRole = 'ADMIN' | 'MEMBER';
+export type UserRole = 'ADMIN' | 'MEMBER';
 
 export interface LoginRequest {
   email: string;
@@ -6,7 +6,7 @@ export interface LoginRequest {
 }
 
 export interface AuthSession {
-  sessionId: string;
+  token: string;
   clientId: string;
   name: string;
   email: string;

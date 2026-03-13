@@ -1,4 +1,4 @@
-﻿package com.alvar.emily.common.error;
+package com.alvar.emily.common.error;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolationException;
@@ -110,6 +110,23 @@ public class GlobalExceptionHandler {
 
   private String formatFieldError(FieldError error) {
     return error.getField() + ": " + error.getDefaultMessage();
+  }
+
+  @ExceptionHandler(org.springframework.security.authentication.BadCredentialsException.class)
+  public ResponseEntity<ApiErrorResponse> handleBadCredentials(
+      org.springframework.security.authentication.BadCredentialsException ex,
+      HttpServletRequest request
+  ) {
+    ApiErrorResponse body = ApiErrorResponse.builder()
+        .timestamp(LocalDateTime.now())
+        .status(HttpStatus.UNAUTHORIZED.value())
+        .error(HttpStatus.UNAUTHORIZED.getReasonPhrase())
+        .message("Credenciales inválidas")
+        .path(request.getRequestURI())
+        .details(List.of())
+        .build();
+
+    return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(body);
   }
 }
 

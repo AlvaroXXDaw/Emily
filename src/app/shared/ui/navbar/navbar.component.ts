@@ -1,6 +1,6 @@
-﻿import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
-import { AuthService } from '../../../core/auth/auth.service';
+import { AuthStore } from '../../../core/auth/auth.store';
 
 @Component({
   selector: 'app-navbar',
@@ -9,7 +9,6 @@ import { AuthService } from '../../../core/auth/auth.service';
   templateUrl: './navbar.component.html',
 })
 export class NavbarComponent {
-  auth = inject(AuthService);
+  auth = inject(AuthStore);
   isMobileMenuOpen = signal(false);
 }
-

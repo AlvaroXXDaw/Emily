@@ -1,4 +1,4 @@
-﻿    <div class="min-h-screen bg-white pt-24">
+    <div class="min-h-screen bg-white pt-24">
       @if (!auth.isLoggedIn()) {
         <div class="h-[calc(100vh-6rem)] flex flex-col items-center justify-center text-center px-6 bg-[#f8f9fa]">
           <div class="w-20 h-20 rounded-full bg-white border border-black/5 flex items-center justify-center mb-8 shadow-sm">
@@ -16,7 +16,7 @@
         @if (!selectedSport()) {
           <div class="flex flex-col lg:flex-row h-[calc(100vh-6rem)]">
             <!-- Futbol -->
-            <button (click)="selectSport('futbol')" class="relative flex-1 group cursor-pointer overflow-hidden border-none p-0 text-left focus:outline-none focus:ring-4 focus:ring-emerald-950/50">
+            <button (click)="selectSport('FUTBOL')" class="relative flex-1 group cursor-pointer overflow-hidden border-none p-0 text-left focus:outline-none focus:ring-4 focus:ring-emerald-950/50">
               <img src="https://images.unsplash.com/photo-1518605368461-1ee7c532066d?q=80&w=2070&auto=format&fit=crop" alt="Fútbol" class="absolute inset-0 w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700 group-hover:scale-105" referrerpolicy="no-referrer">
               <div class="absolute inset-0 bg-emerald-950/40 group-hover:bg-emerald-950/20 transition-colors duration-700"></div>
               <div class="absolute inset-0 flex flex-col items-center justify-center text-white p-8">
@@ -26,7 +26,7 @@
             </button>
             
             <!-- Padel -->
-            <button (click)="selectSport('padel')" class="relative flex-1 group cursor-pointer overflow-hidden border-none p-0 text-left focus:outline-none focus:ring-4 focus:ring-emerald-950/50">
+            <button (click)="selectSport('PADEL')" class="relative flex-1 group cursor-pointer overflow-hidden border-none p-0 text-left focus:outline-none focus:ring-4 focus:ring-emerald-950/50">
               <img src="https://images.unsplash.com/photo-1622279457486-62dcc4a431d6?q=80&w=2070&auto=format&fit=crop" alt="Pádel" class="absolute inset-0 w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700 group-hover:scale-105" referrerpolicy="no-referrer">
               <div class="absolute inset-0 bg-emerald-950/40 group-hover:bg-emerald-950/20 transition-colors duration-700"></div>
               <div class="absolute inset-0 flex flex-col items-center justify-center text-white p-8">

@@ -1,4 +1,4 @@
-﻿<div class="min-h-screen bg-[#f8f9fa] pt-24">
+<div class="min-h-screen bg-[#f8f9fa] pt-24">
   @if (!auth.isLoggedIn()) {
     <div class="h-[calc(100vh-6rem)] flex flex-col items-center justify-center text-center px-6">
       <div class="w-20 h-20 rounded-full bg-white border border-black/5 flex items-center justify-center mb-8 shadow-sm">
@@ -14,7 +14,7 @@
     <div class="max-w-screen-xl mx-auto px-6 lg:px-12 py-12 lg:py-24">
       <div class="mb-16 border-b border-black/10 pb-8">
         <h2 class="text-5xl lg:text-7xl font-light tracking-tighter text-emerald-950 uppercase">Mi Área</h2>
-        <p class="mt-4 text-sm text-gray-500">Usuario: {{ auth.currentUser()?.email }}</p>
+        <p class="mt-4 text-sm text-gray-500">Usuario: {{ auth.session()?.email }}</p>
       </div>
 
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-16">
@@ -49,13 +49,13 @@
             <p class="text-sm text-gray-500">No tienes rutina guardada todavía.</p>
           } @else {
             <div class="space-y-6">
-              @for (day of myRoutine(); track day.id) {
+              @for (day of myRoutine(); track day.dayOrder) {
                 <div class="border border-black/10 p-4">
                   <div class="flex items-center justify-between gap-3">
-                    <p class="text-sm font-semibold text-emerald-950">Día {{ day.id }} - {{ day.name || 'Sin nombre' }}</p>
+                    <p class="text-sm font-semibold text-emerald-950">Día {{ day.dayOrder }} - {{ day.name || 'Sin nombre' }}</p>
                     <button
                       type="button"
-                      (click)="deleteDay(day.id)"
+                      (click)="deleteDay(day.dayOrder!)"
                       class="text-xs font-semibold tracking-[0.15em] uppercase text-red-500 hover:text-red-700"
                     >
                       Eliminar Día
@@ -66,7 +66,7 @@
                     <p class="mt-3 text-sm text-gray-500">No hay ejercicios en este día.</p>
                   } @else {
                     <div class="mt-3 space-y-3">
-                      @for (exercise of day.exercises; track exercise.id) {
+                      @for (exercise of day.exercises; track exercise.name) {
                         <div class="flex flex-col md:flex-row md:items-center md:justify-between border border-black/5 p-3">
                           <div>
                             <p class="text-sm font-medium text-emerald-950">{{ exercise.name || 'Ejercicio sin nombre' }}</p>
@@ -74,7 +74,7 @@
                           </div>
                           <button
                             type="button"
-                            (click)="deleteExercise(day.id, exercise.id)"
+                            (click)="deleteExercise(day.dayOrder!, exercise.id!)"
                             class="mt-3 md:mt-0 text-xs font-semibold tracking-[0.15em] uppercase text-red-500 hover:text-red-700"
                           >
                             Eliminar

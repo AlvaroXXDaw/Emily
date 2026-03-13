@@ -1,8 +1,9 @@
-﻿import { Component, inject } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 
-import { AuthService } from '../../core/auth/auth.service';
+import { AuthApiService } from '../../core/services/auth-api.service';
+import { AuthStore } from '../../core/auth/auth.store';
 
 @Component({
   selector: 'app-login',
@@ -11,30 +12,48 @@ import { AuthService } from '../../core/auth/auth.service';
   templateUrl: './login.page.html',
 })
 export class LoginPageComponent {
-  auth = inject(AuthService);
-  router = inject(Router);
+  private authApi = inject(AuthApiService);
+  private authStore = inject(AuthStore);
+  private router = inject(Router);
 
   email = '';
   password = '';
+  errorMessage = signal('');
+  loading = signal(false);
 
   submitLogin() {
-    const cleanEmail = this.email.trim() || 'socio@club.com';
-    const defaultName = cleanEmail.split('@')[0] || 'Socio';
-    this.auth.login(cleanEmail, defaultName);
-    this.router.navigate(['/']);
+    if (!this.email || !this.password) return;
+
+    this.loading.set(true);
+    this.errorMessage.set('');
+
+    this.authApi.login({ email: this.email, password: this.password }).subscribe({
+      next: (session) => {
+        this.authStore.setSession(session);
+        this.loading.set(false);
+
+        if (session.role === 'ADMIN') {
+          this.router.navigate(['/admin']);
+        } else {
+          this.router.navigate(['/']);
+        }
+      },
+      error: () => {
+        this.loading.set(false);
+        this.errorMessage.set('Email o contraseña incorrectos');
+      },
+    });
   }
 
   devLogin() {
-    const cleanEmail = this.email.trim() || 'socio@club.com';
-    const defaultName = cleanEmail.split('@')[0] || 'Socio';
-    this.auth.login(cleanEmail, defaultName);
-    this.router.navigate(['/']);
+    this.email = 'alvaro@example.com';
+    this.password = 'emily1234';
+    this.submitLogin();
   }
 
   devAdminLogin() {
-    const cleanEmail = this.email.trim() || 'admin@club.com';
-    const defaultName = cleanEmail.split('@')[0] || 'Administrador';
-    this.auth.loginAdmin(cleanEmail, defaultName);
-    this.router.navigate(['/admin']);
+    this.email = 'admin@oasisclub.local';
+    this.password = 'emily1234';
+    this.submitLogin();
   }
 }

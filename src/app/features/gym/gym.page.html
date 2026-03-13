@@ -1,4 +1,4 @@
-ï»¿    <div class="min-h-screen bg-[#f8f9fa] pt-24">
+    <div class="min-h-screen bg-[#f8f9fa] pt-24">
       @if (!auth.isLoggedIn()) {
         <div class="h-[calc(100vh-6rem)] flex flex-col items-center justify-center text-center px-6">
           <div class="w-20 h-20 rounded-full bg-white border border-black/5 flex items-center justify-center mb-8 shadow-sm">
@@ -6,10 +6,10 @@
           </div>
           <h2 class="text-4xl font-light tracking-tighter text-emerald-950 uppercase mb-4">Acceso Restringido</h2>
           <p class="text-gray-500 font-light mb-10 max-w-md text-lg">
-            Para ver tu rutina personalizada y gestionar tu suscripciÃ³n al gimnasio, inicia sesiÃ³n.
+            Para ver tu rutina personalizada y gestionar tu suscripción al gimnasio, inicia sesión.
           </p>
           <a routerLink="/login" class="bg-emerald-950 text-white px-10 py-4 text-xs font-semibold tracking-[0.2em] uppercase hover:bg-emerald-900 transition-colors">
-            Iniciar SesiÃ³n
+            Iniciar Sesión
           </a>
         </div>
       } @else {
@@ -26,11 +26,11 @@
             <!-- Subscription -->
             <div class="lg:col-span-4">
               <div class="bg-white p-8 border border-black/5 mb-8">
-                <h3 class="text-xs font-semibold tracking-[0.2em] uppercase text-gray-400 mb-12">SuscripciÃ³n</h3>
+                <h3 class="text-xs font-semibold tracking-[0.2em] uppercase text-gray-400 mb-12">Suscripción</h3>
                 
                 <div class="mb-12">
                   <span class="block text-[6rem] leading-none font-light tracking-tighter text-emerald-950">12</span>
-                  <span class="text-sm font-light text-gray-500">dÃ­as restantes</span>
+                  <span class="text-sm font-light text-gray-500">días restantes</span>
                 </div>
                 
                 <div class="space-y-4 pt-8 border-t border-black/5">
@@ -39,7 +39,7 @@
                     <span class="text-sm font-medium text-emerald-950">Premium</span>
                   </div>
                   <div class="flex justify-between items-center">
-                    <span class="text-sm font-light text-gray-500">RenovaciÃ³n</span>
+                    <span class="text-sm font-light text-gray-500">Renovación</span>
                     <span class="text-sm font-medium text-emerald-950">15 Abr 2026</span>
                   </div>
                 </div>
@@ -55,7 +55,7 @@
                   <h3 class="text-xs font-semibold tracking-[0.2em] uppercase text-gray-400 mb-8">Configurar Rutina</h3>
                   
                   <div class="mb-6">
-                    <span class="block text-sm font-light text-gray-500 mb-2">DÃ­as de entrenamiento</span>
+                    <span class="block text-sm font-light text-gray-500 mb-2">Días de entrenamiento</span>
                     <div class="flex items-center space-x-4">
                       <button (click)="updateDays(-1)" class="w-10 h-10 border border-black/10 flex items-center justify-center hover:bg-gray-50 transition-colors">-</button>
                       <span class="text-2xl font-light text-emerald-950 w-8 text-center">{{ daysCount() }}</span>
@@ -64,15 +64,15 @@
                   </div>
 
                   <div class="space-y-2">
-                    @for (day of routineDays(); track day.id) {
+                    @for (day of routineDays(); track day.dayOrder) {
                       <button 
-                        (click)="selectDay(day.id)"
-                        [class.bg-emerald-950]="selectedDayId() === day.id"
-                        [class.text-white]="selectedDayId() === day.id"
-                        [class.bg-gray-50]="selectedDayId() !== day.id"
-                        [class.text-emerald-950]="selectedDayId() !== day.id"
+                        (click)="selectDay(day.dayOrder)"
+                        [class.bg-emerald-950]="selectedDayId() === day.dayOrder"
+                        [class.text-white]="selectedDayId() === day.dayOrder"
+                        [class.bg-gray-50]="selectedDayId() !== day.dayOrder"
+                        [class.text-emerald-950]="selectedDayId() !== day.dayOrder"
                         class="w-full text-left px-4 py-3 text-sm font-medium transition-colors border border-transparent hover:border-black/10">
-                        DÃ­a {{ day.id }}
+                        Día {{ day.dayOrder }}
                       </button>
                     }
                   </div>
@@ -80,17 +80,17 @@
               } @else {
                 <!-- Day Selector (View Mode) -->
                 <div class="bg-white p-8 border border-black/5">
-                  <h3 class="text-xs font-semibold tracking-[0.2em] uppercase text-gray-400 mb-8">DÃ­as de Entrenamiento</h3>
+                  <h3 class="text-xs font-semibold tracking-[0.2em] uppercase text-gray-400 mb-8">Días de Entrenamiento</h3>
                   <div class="space-y-2">
-                    @for (day of routineDays(); track day.id) {
+                    @for (day of routineDays(); track day.dayOrder) {
                       <button 
-                        (click)="selectDay(day.id)"
-                        [class.bg-emerald-950]="selectedDayId() === day.id"
-                        [class.text-white]="selectedDayId() === day.id"
-                        [class.bg-gray-50]="selectedDayId() !== day.id"
-                        [class.text-emerald-950]="selectedDayId() !== day.id"
+                        (click)="selectDay(day.dayOrder)"
+                        [class.bg-emerald-950]="selectedDayId() === day.dayOrder"
+                        [class.text-white]="selectedDayId() === day.dayOrder"
+                        [class.bg-gray-50]="selectedDayId() !== day.dayOrder"
+                        [class.text-emerald-950]="selectedDayId() !== day.dayOrder"
                         class="w-full text-left px-4 py-3 text-sm font-medium transition-colors border border-transparent hover:border-black/10 flex justify-between items-center">
-                        <span>DÃ­a {{ day.id }}</span>
+                        <span>Día {{ day.dayOrder }}</span>
                         @if (day.name) {
                           <span class="text-xs opacity-70">{{ day.name }}</span>
                         }
@@ -106,13 +106,13 @@
               <div class="bg-white p-8 lg:p-12 border border-black/5">
                 <div class="flex justify-between items-end mb-12">
                   <div>
-                    <h3 class="text-2xl font-light tracking-tight text-emerald-950 mb-2">Rutina DÃ­a {{ selectedDayId() }}</h3>
+                    <h3 class="text-2xl font-light tracking-tight text-emerald-950 mb-2">Rutina Día {{ selectedDayId() }}</h3>
                     @if (isEditing()) {
                       <input 
                         type="text" 
                         [ngModel]="currentDay()?.name"
                         (ngModelChange)="updateDayName($event)"
-                        placeholder="Ej: Pecho y TrÃ­ceps"
+                        placeholder="Ej: Pecho y Tríceps"
                         class="text-sm font-light text-gray-500 border-b border-black/10 focus:border-emerald-950 focus:outline-none bg-transparent py-1 w-64 transition-colors">
                     } @else {
                       <p class="text-sm font-light text-gray-500">{{ currentDay()?.name || 'Sin nombre' }}</p>
@@ -123,10 +123,10 @@
                     <div class="flex items-center gap-4">
                       <button (click)="addExercise()" class="text-xs font-semibold tracking-[0.2em] uppercase text-emerald-950 hover:text-emerald-700 transition-colors flex items-center">
                         <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-                        AÃ±adir Ejercicio
+                        Añadir Ejercicio
                       </button>
                       <button (click)="removeCurrentDay()" class="text-xs font-semibold tracking-[0.2em] uppercase text-red-500 hover:text-red-700 transition-colors">
-                        Eliminar DÃ­a
+                        Eliminar Día
                       </button>
                     </div>
                   } @else {
@@ -154,7 +154,7 @@
                             class="text-lg font-medium text-emerald-950 bg-transparent border-none p-0 focus:ring-0 w-full placeholder-gray-300">
                         } @else {
                           <h4 class="text-lg font-medium text-emerald-950">{{ exercise.name || 'Ejercicio sin nombre' }}</h4>
-                          <p class="text-sm font-light text-gray-500">{{ exercise.sets }} series Ã— {{ exercise.reps }} reps</p>
+                          <p class="text-sm font-light text-gray-500">{{ exercise.sets }} series × {{ exercise.reps }} reps</p>
                         }
                       </div>
                       
@@ -187,7 +187,7 @@
 
                   @if (currentDay()?.exercises?.length === 0) {
                     <div class="py-12 text-center text-gray-400 font-light">
-                      No hay ejercicios en este dÃ­a. @if(isEditing()) { AÃ±ade uno para empezar. }
+                      No hay ejercicios en este día. @if(isEditing()) { Añade uno para empezar. }
                     </div>
                   }
                 </div>

@@ -1,4 +1,4 @@
-﻿package com.alvar.emily.clients.domain;
+package com.alvar.emily.clients.domain;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -53,5 +53,11 @@ public class ClientEntity {
 
   @Column(name = "subscription_amount_cents", nullable = false)
   private Integer subscriptionAmountCents;
+
+  @Column(name = "password_hash", nullable = false)
+  private String passwordHash;
+
+  @Column(nullable = false, length = 20)
+  private String role;
 }
 
